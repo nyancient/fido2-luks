@@ -4,7 +4,6 @@ set -e
 
 case "$1" in
     configure)
-        echo
         update-initramfs -u
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)

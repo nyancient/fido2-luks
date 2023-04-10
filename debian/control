@@ -8,7 +8,7 @@ Homepage: https://github.com/nyancient/fido2-luks
 
 Package: fido2-luks
 Architecture: all
-Depends: cryptsetup, initramfs-tools, fido2-tools, udisks2, expect, ${misc:Depends}
+Depends: coreutils, util-linux, cryptsetup, initramfs-tools, fido2-tools, udisks2, ${misc:Depends}
 Description: FIDO2 two factor authentication for LUKS disks
  With this extension to the initramfs-tools, you can unlock a LUKS encrypted
  disk using your FIDO2 token as a strong single factor.

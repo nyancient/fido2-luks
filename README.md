@@ -36,6 +36,7 @@ You can now assign the Yubikey to a slot using the tool
     fido2-luks-enroll
 
 This will cause a few things to happen:
+
 0. (If `-c` was specified) the LUKS keyslot into which to enroll your FIDO2 token is cleared.
    By default, this is keyslot 7.
 1. If a FIDO2 credential is not already configured, a new credential is created

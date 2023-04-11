@@ -16,16 +16,23 @@ For security and to avoid having to support multiple separate use cases,
 PIN entry is mandatory for decryption.
 
 
-Install package
----------------
+Installation
+------------
 
-Build the package (without signing it):
-
-    make builddeb NO_SIGN=1
-
-Install the package:
-
-    dpkg -i DEBUILD/fido2-luks_0.*-1_all.deb
+1. Add the nyancient repository:
+   ```bash
+   curl https://nyancient.github.io/deb/setup.sh | sh
+   ```
+   Or, if you want to inspect the (very short) setup script before running it:
+   ```bash
+   curl https://nyancient.github.io/deb/setup.sh -o setup.sh
+   cat setup.sh # Convince yourself that the script is safe to run
+   sh ./setup.sh # Then run it
+   ```
+2. Install `fido2-luks`:
+   ```bash
+   apt install fido2-luks
+   ```
 
 
 Assign a FIDO2 token to a LUKS slot

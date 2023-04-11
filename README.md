@@ -64,7 +64,9 @@ This has a few implications:
    the secret can be used as a normal passphrase to unlock the disk.
 
 It is therefore recommended that you keep a separate recovery key, if you should lose either
-your token or your configuration file.
+your token or your configuration file, and to use secure boot with a
+[signed initramfs](https://askubuntu.com/questions/1247826/secure-boot-verification-of-initramfs)
+to prevent the HMAC secret from being intercepted.
 
 
 Configuring encrypted root

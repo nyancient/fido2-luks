@@ -1,5 +1,9 @@
-fido2-luks (0.1.0-1) UNRELEASED; urgency=medium
+fido2-luks (0.2.0-1) UNRELEASED; urgency=medium
 
+  [ Nyancient ]
   * Initial release.
 
- -- Nyancient <foxolotl@protonmail.com>  Mon, 10 Apr 2023 12:46:15 +0200
+  [ Nyancient ]
+  * On-disk compatibility with systemd-cryptsetup.
+
+ -- Nyancient <foxolotl@protonmail.com>  Sun, 16 Apr 2023 01:54:29 +0200

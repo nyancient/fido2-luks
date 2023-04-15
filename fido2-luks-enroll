@@ -1,70 +1,11 @@
 #!/bin/sh
 CLEAR_SLOT=0
-SLOT=7
-DBG=0
 
 set -e
 . /usr/share/fido2-luks/fido2-utils.sh
-. $CONFIG_FILE
 
-fido2_update_config() {
-    if ! grep -qE "[^\\t ]*FIDO2_$1=" $CONFIG_FILE ; then
-        printf '\nFIDO2_%s="%s"\n' "$1" "$2" >> $CONFIG_FILE
-    else
-        local sed_script=$(printf 's;[^\\t ]*FIDO2_%s=.*$;FIDO2_%s="%s";' $1 $1 $2)
-        sed -i -e "$sed_script" $CONFIG_FILE
-    fi
-}
-
-fido2_create_credential() {
-    local challenge=$(dd if=/dev/urandom bs=1 count=32 2> /dev/null | base64)
-    local user_id=$(printf '%s' "$FIDO2_USERNAME" | base64)
-    local params="$challenge\n$FIDO2_RELYING_PARTY\n$FIDO2_USERNAME\n$user_id"
-    if [ "$DBG" = "1" ]; then echo "Credential parameters: \n$params\n"; fi
-
-    local cred=$(echo "$params" | fido2-cred -M $(fido2_device) | fido2-cred -V)
-    if [ "$DBG" = "1" ]; then echo "Credential response: \n$cred\n"; fi
-    if [ -z "$cred" ] ; then
-        return 1
-    fi
-
-    # We base64 encode the already PEM encoded pubkey to fit it on one line in the config.
-    FIDO2_CREDENTIAL_PUBKEY="$(printf '%s\n' "$cred" | tail -n+2 | base64 -w0)"
-    FIDO2_CREDENTIAL_ID="$(printf '%s\n' "$cred" | head -1)"
-}
 
 fido2_enroll() {
-    if [ "$FIDO2_CREDENTIAL_ID" = "" ] ; then
-        echo "No credential configured. Creating a new one."
-        if ! fido2_create_credential ; then
-            echo "Unable to create FIDO2 credential."
-            exit 1
-        fi
-
-        if [ "$DBG" = "1" ]; then echo "Saving FIDO2 credential ID and public key to config."; fi
-        fido2_update_config CREDENTIAL_ID "$FIDO2_CREDENTIAL_ID"
-        fido2_update_config CREDENTIAL_PUBKEY "$FIDO2_CREDENTIAL_PUBKEY"
-
-        echo "New credential created."
-        echo "You will need to run update-initramfs -u once this script finishes."
-    fi
-
-    local salt=$(fido2_salt_from_blkid $DISK)
-    local challenge=$(dd if=/dev/urandom bs=1 count=32 2> /dev/null | base64)
-    local params="$challenge\n$FIDO2_RELYING_PARTY\n$FIDO2_CREDENTIAL_ID\n$salt"
-    if [ "$DBG" = "1" ]; then echo "Assertion parameters: \n$params\n"; fi
-
-    local assertion=$(echo "$params" | fido2-assert -G -h -v $(fido2_device))
-    if [ "$DBG" = "1" ]; then echo "Assertion response: \n$assertion\n"; fi
-    if [ -z "$assertion" ] ; then
-        echo "Unable to generate shared secret."
-        exit 1
-    fi
-
-    local keyfile=$(fido2_temp_keyfile)
-
-    echo "$assertion" | head -n4 | fido2-assert -V -h $keyfile || (rm -f $keyfile ; exit 1)
-    rm -f $keyfile
     R=$(printf '%s\n' "$assertion" | tail -1)
 }
 
@@ -75,10 +16,6 @@ fi
 
 while getopts ":s:d:hcv" opt; do
     case $opt in
-    s)
-        SLOT=$OPTARG
-        echo "setting slot to $OPTARG."
-        ;;
     d)
         DISK=$OPTARG
         echo "setting disk to $OPTARG."
@@ -87,15 +24,10 @@ while getopts ":s:d:hcv" opt; do
         CLEAR_SLOT=1
         echo "clearing slot"
         ;;
-    v)  DBG=1
-        echo "debugging enabled"
-        ;;
     h)
         echo
         echo " -d <partition>: set the partition"
-        echo " -s <slot>     : set the LUKS slot"
-        echo " -c            : clear the slot prior to writing"
-        echo " -v            : show input/output in cleartext"
+        echo " -c            : clear all fido2 slots prior to writing"
         echo
         exit 1
         ;;
@@ -106,8 +38,14 @@ while getopts ":s:d:hcv" opt; do
 done
 
 if [ "$CLEAR_SLOT" = "1" ]; then
-    echo "Killing LUKS slot $SLOT on device $DISK"
-    cryptsetup luksKillSlot "$DISK" "$SLOT"
+    echo "Killing FIDO2 LUKS slots on device $DISK"
+    systemd-cryptenroll --wipe-slot=fido2 "$DISK"
+fi
+
+num_fido2_tokens=$(cryptsetup luksDump "$DISK" | grep -E '^\s+[0-9]+: systemd-fido2$' | wc -l)
+if [ $num_fido2_tokens -gt 0 ] ; then
+    echo "FIDO2 token already enrolled. Refusing to enroll another one."
+    exit 1
 fi
 
 while true ; do
@@ -116,18 +54,14 @@ while true ; do
     read -r _ <&1
 done
 
-fido2_enroll
-
-OLD=$(/lib/cryptsetup/askpass "Please provide an existing passphrase for $DISK. This is NOT the PIN of your FIDO2 token, this is the passphrase that you currently use to unlock your LUKS encrypted drive:")
-if [ "$DBG" = "1" ]; then echo "Old passphrase: '$OLD'"; fi
-
-printf '%s\n' "$OLD" "$R" "$R" | cryptsetup --new-key-slot="$SLOT" luksAddKey "$DISK" 2>&1;
-if [ "$DBG" = "1" ]; then echo "LUKS key: '$R'"; fi
+systemd-cryptenroll "$DISK" \
+    --fido2-device=auto \
+    --fido2-with-client-pin=true \
+    --fido2-with-user-presence=true
 
 echo
 echo "FIDO2 token enrolled."
 echo "In order to be able to decrypt $DISK using your FIDO2 token at boot time:"
-echo "- append 'ROOT_DISK=$DISK' to $CONFIG_FILE,"
 echo "- append 'keyscript=/usr/share/fido2-luks/fido2-luks-keyscript'"
 echo "  to the options section of the entry in /etc/crypttab corresponding to $DISK, and then"
 echo "- run 'update-initramfs -u'."

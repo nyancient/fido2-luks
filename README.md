@@ -1,10 +1,23 @@
 fido2-luks
 ==========
 
-This package is forked from https://github.com/cornelinux/yubikey-luks.
+This package is forked from [yubikey-luks](https://github.com/cornelinux/yubikey-luks).
+It provides the following benefits over the original yubikey-luks:
+- Device support: any FIDO2 token with the hmac-secret extension is supported.
+- Brute force protection: since the FIDO2 hmac-secret extension is used,
+  the security token handles PIN verification, and can enforce brute force protection
+  policies. Yubikeys, for example, lock up after five incorrect PIN guesses.
+- `systemd-cryptsetup` compatibility: this package uses the same on-disk format as
+  `systemd-cryptsetup`, making migration trivial if Debian gets around to replacing
+  `cryptsetup` in its initramfs.
+- Zero configuration: no external configuration file is required to unlock an
+  encrypted device, just the device, your FIDO2 token, and your PIN.
+
+Description
+-----------
 
 This package lets you use a FIDO2 token with the hmac-secret extension
-as a strong single factor for LUKS.
+as a strong single factor for LUKS (Linux full disk encryption).
 
 Well-known examples of such tokens include all FIDO2 models of Yubikey,
 the Google Titan key, the Nitrokey FIDO2, any SoloKey,
@@ -31,36 +44,29 @@ Installation
    ```
 2. Install `fido2-luks`:
    ```bash
-   apt install fido2-luks
+   sudo apt install fido2-luks
    ```
 
 
-Assign a FIDO2 token to a LUKS slot
------------------------------------
+Enroll a FIDO2 token
+--------------------
 
 You can now assign the Yubikey to a slot using the tool
 
     fido2-luks-enroll
 
 This will cause a few things to happen:
-
-0. (If `-c` was specified) the LUKS keyslot into which to enroll your FIDO2 token is cleared.
-   By default, this is keyslot 7.
-1. If a FIDO2 credential is not already configured, a new credential is created
-   and its corresponding credential identifier and public key are stored in `/etc/fido2-luks.cfg`.
-   You will be prompted for your FIDO2 token's PIN and asked to verify your presence.
-   If a credential _is_ already configured, it will be reused for subsequent operations.
-2. The FIDO2 token computes a HMAC over the UUID of the LUKS volume for which the token is to be
-   enrolled and the secret corresponding to the FIDO2 credential created in step 1.
+0. (If `-c` was specified) any existing FIDO2 LUKS keyslots are wiped.
+1. A FIDO2 credential and salt is created and stored as a LUKS token in
+   the header of the encrypted device.
+2. The FIDO2 token computes a HMAC over the salt and credential created in step 1.
    You will be prompted for your FIDO2 token's PIN and asked to verify your presence.
 3. The resulting HMAC is enrolled as a LUKS passphrase on the encrypted device.
 
 This has a few implications:
-1. To decrypt a device using your FIDO2 token, you will need the device itself (obviously),
-   the token, the token's PIN, and the credential configured in `/etc/fido2-luks.cfg`.
-2. If either the credential or the UUID of the encrypted device changes, you will no longer
-   be able to decrypt the device using your token until you re-enroll it.
-3. If an attacker is able to intercept the HMAC secret (e.g. using an evil maid attack),
+1. To decrypt a device using your FIDO2 token, you only need the device itself (obviously),
+   the token, and the token's PIN.
+2. If an attacker is able to intercept the HMAC secret (e.g. using an evil maid attack),
    the secret can be used as a normal passphrase to unlock the disk.
 
 It is therefore recommended that you keep a separate recovery key, if you should lose either
@@ -75,12 +81,9 @@ Configuring encrypted root
 In order to use your FIDO2 token to decrypt your root disk at boot time, there are still
 a few hoops to jump through:
 
-1. Add `ROOT_DISK=<device>` to `/etc/fido2-luks.cfg`, where `<device>` is your encrypted
-   root device. `ROOT_DISK` defaults to `/dev/nvme0n1p3`, so if this is your root device
-   you do not need to update your configuration file.
-2. Add `keyscript=/usr/share/fido2-luks/fido2-luks-keyscript` to the options section of
+1. Add `keyscript=/usr/share/fido2-luks/fido2-luks-keyscript` to the options section of
    the entry in `/etc/crypttab` that corresponds to your encrypted root device.
-3. Run `update-initramfs -u`, to make the above changes take effect during boot.
+2. Run `update-initramfs -u`, to make the above changes take effect during boot.
 
 
 Non-root decryption
@@ -90,16 +93,14 @@ Any partitions except the root partition can be unlocked at any time using
 the `fido2-luks-open` command. This also applies to image files, USB memory sticks, or
 anything else that uses LUKS for encryption.
 
-Keep in mind that you will still need the your token, its PIN, and the credential
-used to enroll the token, in order to unlock any such device;
-make sure to keep a copy of your configuration file along with any encrypted device
-intended to be decrypted on a computer other than the one used to enroll your FIDO2 token.
 
+Building
+--------
 
-Using multiple FIDO2 tokens
----------------------------
-You can configure multiple FIDO2 tokens to unlock your disk, as long as you use a different
-LUKS slot for each token.
+Build the package (without signing it):
 
-Only one token may be plugged in during decryption however, as there is no reliable way of
-distinguishing one token from another.
+    make builddeb NO_SIGN=1
+
+Install the package:
+
+    dpkg -i DEBUILD/fido2-luks_0.*-1_all.deb

@@ -17,9 +17,8 @@ case $1 in
 esac
 
 . /usr/share/initramfs-tools/hook-functions
-. /etc/fido2-luks.cfg
 
-copy_exec /usr/bin/sha256sum
+copy_exec /usr/bin/jq
 copy_exec /usr/bin/fido2-token
 copy_exec /usr/bin/fido2-assert
 

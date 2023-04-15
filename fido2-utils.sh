@@ -1,21 +1,5 @@
 #!/bin/sh
 DISK="/dev/nvme0n1p3"
-ROOT_DISK=$DISK
-CONFIG_FILE="/etc/fido2-luks.cfg"
-FIDO2_RELYING_PARTY="fido2-luks.nyancient.github.com"
-FIDO2_USERNAME="fido2-luks"
-FIDO2_CREDENTIAL_ID=
-FIDO2_CREDENTIAL_PUBKEY=
-
-sha256_base64() {
-    # Computes SHA256 over the given argument, converts the hash to a binary blob, and returns the
-    # base64 encoding of said blob.
-    /usr/bin/printf $(printf '%s' "$1" | sha256sum | awk '{print $1}' | sed -e 's/\([0-9a-f]\{2\}\)/\\x\1/g') | base64 -w0
-}
-
-fido2_salt_from_blkid() {
-    sha256_base64 "$(blkid -o value "$1" | head -1)"
-}
 
 fido2_device() {
     device=$(fido2-token -L | sed 's/:.*//')
@@ -26,24 +10,25 @@ fido2_device() {
     fi
 }
 
-fido2_temp_keyfile() {
-    local keyfile=$(mktemp)
-    echo "$FIDO2_CREDENTIAL_PUBKEY" | base64 -d > $keyfile
-    echo $keyfile
+fido2_get_token() {
+    token_id=$(cryptsetup luksDump "$DISK" | grep -E '^\s+[0-9]+: systemd-fido2$' | head -1 | sed -e 's/\s\+\([0-9]\+\):.*/\1/')
+    cryptsetup token export "$DISK" --token-id=$token_id
 }
 
 fido2_authenticate() {
+    token_json=$(fido2_get_token)
     param_file=$(mktemp)
     dd if=/dev/urandom bs=1 count=32 2> /dev/null | base64 > $param_file
-    echo "$FIDO2_RELYING_PARTY" >> $param_file
-    echo "$FIDO2_CREDENTIAL_ID" >> $param_file
-    fido2_salt_from_blkid $2 >> $param_file
+    echo $token_json | jq -r '."fido2-rp"' >> $param_file
+    echo $token_json | jq -r '."fido2-credential"' >> $param_file
+    echo $token_json | jq -r '."fido2-salt"' >> $param_file
 
-    assertion=$(echo "$1" | setsid fido2-assert -G -h -v -i "$param_file" $(fido2_device) 2> /dev/null || (rm -f $param_file ; echo "Wrong PIN." 1>&2 ; exit 1))
+    assert_flags="-G -h"
+    assert_flags="$assert_flags -t pin=$(echo $token_json | jq -r '."fido2-clientPin-required"')"
+    assert_flags="$assert_flags -t up=$(echo $token_json | jq -r '."fido2-up-required"')"
+    assert_flags="$assert_flags -t uv=$(echo $token_json | jq -r '."fido2-uv-required"')"
+
+    assertion=$(echo "$1" | setsid fido2-assert $assert_flags -i "$param_file" $(fido2_device) 2> /dev/null || (rm -f $param_file ; echo "Wrong PIN." 1>&2 ; exit 1))
     rm -f $param_file
-
-    keyfile=$(fido2_temp_keyfile)
-    echo "$assertion" | head -n4 | fido2-assert -V -h "$keyfile" || (rm -f $keyfile ; exit 1)
-    rm -f $keyfile
     printf '%s' "$assertion" | tail -1
 }

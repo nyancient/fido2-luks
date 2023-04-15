@@ -3,7 +3,6 @@
 # This is /sbin/fido2-keyscript, which gets called when unlocking the disk
 #
 . /usr/share/fido2-luks/fido2-utils.sh
-. $CONFIG_FILE
 
 message()
 {

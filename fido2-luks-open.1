@@ -48,10 +48,8 @@ Name for the opened container (default: fido2-luks).
 .TP
 .B \-d
 The disk device to work with (default: /dev/nvme0n1p3).
-.TP
-.B \-v
-Print debug info,
-.B including PINs, passwords and keys in plain text.
 
 .SH SEE ALSO
-.BR fido2-luks-enroll (1).
+.BR cryptsetup (1),
+.BR fido2-luks-enroll (1),
+.BR systemd-cryptsetup (1).

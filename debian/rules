@@ -16,4 +16,3 @@ override_dh_install:
 	install -D -o root -g root -m755 fido2-luks-enroll debian/fido2-luks/usr/bin/fido2-luks-enroll
 	install -D -o root -g root -m644 fido2-luks-enroll.1 debian/fido2-luks/usr/share/man/man1/fido2-luks-enroll.1
 	install -D -o root -g root -m644 README.md debian/fido2-luks/usr/share/doc/fido2-luks/README.md
-	install -D -o root -g root -m644 fido2-luks.cfg debian/fido2-luks/etc/fido2-luks.cfg

@@ -69,8 +69,8 @@ This has a few implications:
 2. If an attacker is able to intercept the HMAC secret (e.g. using an evil maid attack),
    the secret can be used as a normal passphrase to unlock the disk.
 
-It is therefore recommended that you keep a separate recovery key, if you should lose either
-your token or your configuration file, and to use secure boot with a
+It is therefore recommended that you keep a separate recovery key, if you should lose
+your token, and to use secure boot with a
 [signed initramfs](https://askubuntu.com/questions/1247826/secure-boot-verification-of-initramfs)
 to prevent the HMAC secret from being intercepted.
 

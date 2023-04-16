@@ -6,7 +6,7 @@ It provides the following benefits over the original yubikey-luks:
 - Device support: any FIDO2 token with the hmac-secret extension is supported.
 - Brute force protection: since the FIDO2 hmac-secret extension is used,
   the security token handles PIN verification, and can enforce brute force protection
-  policies. Yubikeys, for example, lock up after five incorrect PIN guesses.
+  policies. Yubikeys, for example, lock up after five incorrect PIN guesses by default.
 - `systemd-cryptsetup` compatibility: this package uses the same on-disk format as
   `systemd-cryptsetup`, making migration trivial if Debian gets around to replacing
   `cryptsetup` in its initramfs.

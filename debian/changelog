@@ -1,4 +1,4 @@
-fido2-luks (0.2.0-1) UNRELEASED; urgency=medium
+fido2-luks (0.2.1-1) unstable; urgency=medium
 
   [ Nyancient ]
   * Initial release.
@@ -6,4 +6,7 @@ fido2-luks (0.2.0-1) UNRELEASED; urgency=medium
   [ Nyancient ]
   * On-disk compatibility with systemd-cryptsetup.
 
- -- Nyancient <foxolotl@protonmail.com>  Sun, 16 Apr 2023 01:54:29 +0200
+  [ Nyancient ]
+  * Fix initramfs hook.
+
+ -- Nyancient <foxolotl@protonmail.com>  Tue, 18 Apr 2023 11:49:39 +0000

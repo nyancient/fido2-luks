@@ -25,7 +25,7 @@ fi
 if fido2_device > /dev/null ; then
     PW="$($cryptkeyscript "Enter the PIN of your FIDO2 token")"
     message "Accessing FIDO2 token..."
-    R="$(fido2_authenticate "$PW" "$ROOT_DISK")"
+    R="$(fido2_authenticate "$PW" "$CRYPTTAB_SOURCE")"
     if [ -z "$R" ]; then
         message "Failed to authenticate using FIDO2 token."
         exit 1

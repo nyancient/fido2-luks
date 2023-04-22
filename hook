@@ -25,6 +25,5 @@ copy_exec /usr/bin/fido2-assert
 mkdir -p "${DESTDIR}/usr/share/fido2-luks"
 cp /usr/share/fido2-luks/fido2-luks-keyscript "${DESTDIR}/sbin/fido2-luks-keyscript"
 cp /usr/share/fido2-luks/fido2-utils.sh "${DESTDIR}/usr/share/fido2-luks/fido2-utils.sh"
-cp /etc/fido2-luks.cfg "${DESTDIR}/etc/fido2-luks.cfg"
 
 exit 0

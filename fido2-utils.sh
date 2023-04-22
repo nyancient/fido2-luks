@@ -11,12 +11,12 @@ fido2_device() {
 }
 
 fido2_get_token() {
-    token_id=$(cryptsetup luksDump "$DISK" | grep -E '^\s+[0-9]+: systemd-fido2$' | head -1 | sed -e 's/\s\+\([0-9]\+\):.*/\1/')
-    cryptsetup token export "$DISK" --token-id=$token_id
+    token_id=$(cryptsetup luksDump "$1" | grep -E '^\s+[0-9]+: systemd-fido2$' | head -1 | sed -e 's/\s\+\([0-9]\+\):.*/\1/')
+    cryptsetup token export "$1" --token-id=$token_id
 }
 
 fido2_authenticate() {
-    token_json=$(fido2_get_token)
+    token_json=$(fido2_get_token "$2")
     param_file=$(mktemp)
     dd if=/dev/urandom bs=1 count=32 2> /dev/null | base64 > $param_file
     echo $token_json | jq -r '."fido2-rp"' >> $param_file

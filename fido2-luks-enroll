@@ -1,5 +1,6 @@
 #!/bin/sh
 CLEAR_SLOT=0
+USE_PIN=true
 
 set -e
 . /usr/share/fido2-luks/fido2-utils.sh
@@ -14,7 +15,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-while getopts ":s:d:hcv" opt; do
+while getopts ":s:d:hcnv" opt; do
     case $opt in
     d)
         DISK=$OPTARG
@@ -24,10 +25,15 @@ while getopts ":s:d:hcv" opt; do
         CLEAR_SLOT=1
         echo "clearing slot"
         ;;
+    n)
+        USE_PIN=false
+        echo "not using PIN"
+        ;;
     h)
         echo
         echo " -d <partition>: set the partition"
         echo " -c            : clear all fido2 slots prior to writing"
+        echo " -n            : don't ask for PIN when authenticating"
         echo
         exit 1
         ;;
@@ -56,7 +62,7 @@ done
 
 systemd-cryptenroll "$DISK" \
     --fido2-device=auto \
-    --fido2-with-client-pin=true \
+    --fido2-with-client-pin=$USE_PIN \
     --fido2-with-user-presence=true
 
 echo

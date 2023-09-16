@@ -23,7 +23,11 @@ if [ -z "$cryptkeyscript" ]; then
 fi
 
 if fido2_device > /dev/null ; then
-    PW="$($cryptkeyscript "Enter the PIN of your FIDO2 token")"
+    if fido2_is_pin_required "$DISK" ; then
+        PW="$($cryptkeyscript "Enter the PIN of your FIDO2 token")"
+    else
+        PW=
+    fi
     message "Accessing FIDO2 token..."
     R="$(fido2_authenticate "$PW" "$CRYPTTAB_SOURCE")"
     if [ -z "$R" ]; then

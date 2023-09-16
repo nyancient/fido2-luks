@@ -36,8 +36,11 @@ while true ; do
     read -r _ <&1
 done
 
-_passphrase=''
-pin=$(/lib/cryptsetup/askpass "Enter FIDO2 token PIN:")
+if fido2_is_pin_required "$DISK" ; then
+    pin=$(/lib/cryptsetup/askpass "Enter FIDO2 token PIN:")
+else
+    pin=
+fi
 _passphrase=$(fido2_authenticate "$pin" "$DISK")
 
 printf %s "${_passphrase}" | cryptsetup luksOpen "$DISK" "$NAME" 2>&1;

@@ -22,6 +22,19 @@ if [ -z "$cryptkeyscript" ]; then
     fi
 fi
 
+# If PIN is not required, we assume that this system is intended to be unlocked
+# without needing keyboard interaction, so we wait for 30s for a FIDO2 device
+# to show up.
+if ! fido2_is_pin_required "$DISK" && ! fido2_device > /dev/null ; then
+    message "Waiting up to 30 seconds for FIDO2 device..."
+    for i in $(seq 30 -1 1) ; do
+        if fido2_device > /dev/null ; then
+            break
+        fi
+        sleep 1
+    done
+fi
+
 if fido2_device > /dev/null ; then
     if fido2_is_pin_required "$DISK" ; then
         PW="$($cryptkeyscript "Enter the PIN of your FIDO2 token")"

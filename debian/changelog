@@ -1,3 +1,25 @@
+fido2-luks (0.2.4-1) unstable; urgency=medium
+
+  [ Nyancient ]
+  * Wait up to 30s for FIDO2 device before requiring keyboard to proceed.
+  * Fix bug where _only_ PIN-less authentication would work.
+
+ -- Nyancient <foxolotl@protonmail.com>  Sat, 16 Sep 2023 12:26:44 +0200
+
+fido2-luks (0.2.3-1) unstable; urgency=medium
+
+  [ Nyancient ]
+  * Don't prompt for PIN during bootup if we're not going to use it.
+
+ -- Nyancient <foxolotl@protonmail.com>  Sat, 16 Sep 2023 11:19:08 +0200
+
+fido2-luks (0.2.2-1) unstable; urgency=medium
+
+  [ Nyancient ]
+  * Support authentication without PIN.
+
+ -- Nyancient <foxolotl@protonmail.com>  Sat, 16 Sep 2023 10:21:57 +0200
+
 fido2-luks (0.2.1-1) unstable; urgency=medium
 
   [ Nyancient ]

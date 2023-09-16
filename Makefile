@@ -7,7 +7,7 @@ info:
 	@echo "ppa-dev               - upload to ppa launchpad. Development"
 	@echo "ppa                   - upload to ppa launchpad. Stable"
 
-VERSION=0.2.1
+VERSION=0.2.4
 PACKAGE=fido2-luks
 SRC_DIR=${PACKAGE}-${VERSION}
 

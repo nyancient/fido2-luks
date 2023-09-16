@@ -23,12 +23,20 @@ fido2-luks (0.2.2-1) unstable; urgency=medium
 fido2-luks (0.2.1-1) unstable; urgency=medium
 
   [ Nyancient ]
-  * Initial release.
+  * Fix initramfs hook.
+
+ -- Nyancient <foxolotl@protonmail.com>  Tue, 18 Apr 2023 13:49:39 +0200
+
+fido2-luks (0.2.0-1) unstable; urgency=medium
 
   [ Nyancient ]
   * On-disk compatibility with systemd-cryptsetup.
 
-  [ Nyancient ]
-  * Fix initramfs hook.
+ -- Nyancient <foxolotl@protonmail.com>  Sun, 16 Apr 2023 01:56:08 +0200
 
- -- Nyancient <foxolotl@protonmail.com>  Tue, 18 Apr 2023 11:49:39 +0000
+fido2-luks (0.1.0-1) unstable; urgency=medium
+
+  [ Nyancient ]
+  * Initial release.
+
+ -- Nyancient <foxolotl@protonmail.com>  Mon, 10 Apr 2023 23:24:08 +0200

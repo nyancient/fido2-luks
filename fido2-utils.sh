@@ -68,7 +68,7 @@ fido2_authenticate() {
    for i in $(seq 0 $totalUsers)
    do
       result=$(fido2_pin_check $1 $2 "$(array_getNth $i $positionFidoUsers)")
-      if [ $totalUsers -gt 0 ] && [ "$result" != "Wrong" ]; then
+      if [ $totalUsers -ge 0 ] && [ "$result" != "Wrong" ]; then
           authOk=$result
       fi
    done
